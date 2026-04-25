@@ -13,20 +13,22 @@ class WaterViewModel: ObservableObject {
     private let achievementsKey = "WaterDrinks_achievements"
 
     init() {
-        // Load saved goal or use default
         let today = Calendar.current.startOfDay(for: Date())
         
+        // Step 1: Initialize all stored properties first with defaults
+        self.dailyGoal = DailyGoal.defaultGoal
+        self.selectedCupSize = 250
+        self.todayRecord = DailyRecord(date: today, goalMl: 2000)
+        self.records = []
+        self.achievements = []
+        
+        // Step 2: Now load real data
         if let data = UserDefaults.standard.data(forKey: "WaterDrinks_goal"),
            let savedGoal = try? JSONDecoder().decode(DailyGoal.self, from: data) {
             self.dailyGoal = savedGoal
-        } else {
-            self.dailyGoal = DailyGoal.defaultGoal
+            self.selectedCupSize = savedGoal.selectedCupSize
+            self.todayRecord = DailyRecord(date: today, goalMl: savedGoal.targetMl)
         }
-
-        self.selectedCupSize = dailyGoal.selectedCupSize
-        
-        // Initialize todayRecord with a default first
-        self.todayRecord = DailyRecord(date: today, goalMl: dailyGoal.targetMl)
         
         // Load saved records
         let savedRecords = Self.loadRecordsStatic()
@@ -38,10 +40,10 @@ class WaterViewModel: ObservableObject {
         }
 
         // Load achievements
-        self.achievements = Self.loadAchievementsStatic()
-
-        // Initialize default achievements if first launch
-        if achievements.isEmpty {
+        let loadedAchievements = Self.loadAchievementsStatic()
+        if !loadedAchievements.isEmpty {
+            self.achievements = loadedAchievements
+        } else {
             self.achievements = Self.defaultAchievements
             saveAchievements()
         }
