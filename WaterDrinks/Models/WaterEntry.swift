@@ -14,7 +14,7 @@ struct WaterEntry: Identifiable, Codable {
     }
 }
 
-struct Achievement: Identifiable {
+struct Achievement: Identifiable, Codable {
     let id: UUID
     let name: String
     let description: String
