@@ -31,8 +31,8 @@ struct HomeView: View {
             }
             .sheet(isPresented: $showCustomAmount) {
                 CustomAmountView(customAmount: $customAmount) { amount in
-                    if let ml = Int(amount), ml > 0 {
-                        waterVM.addWater(amount: ml)
+                    if amount > 0 {
+                        waterVM.addWater(amount: amount)
                     }
                     customAmount = ""
                 }
