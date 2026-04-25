@@ -32,7 +32,7 @@ struct Achievement: Identifiable, Codable {
         currentValue >= requiredValue
     }
 
-    enum AchievementType: String, CaseIterable {
+    enum AchievementType: String, CaseIterable, Codable {
         case streak
         case total
         case daily
