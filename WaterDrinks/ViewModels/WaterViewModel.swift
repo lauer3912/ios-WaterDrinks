@@ -14,6 +14,8 @@ class WaterViewModel: ObservableObject {
 
     init() {
         // Load saved goal or use default
+        let today = Calendar.current.startOfDay(for: Date())
+        
         if let data = UserDefaults.standard.data(forKey: "WaterDrinks_goal"),
            let savedGoal = try? JSONDecoder().decode(DailyGoal.self, from: data) {
             self.dailyGoal = savedGoal
@@ -22,28 +24,43 @@ class WaterViewModel: ObservableObject {
         }
 
         self.selectedCupSize = dailyGoal.selectedCupSize
-
-        // Load today's record
-        let today = Calendar.current.startOfDay(for: Date())
-        if let savedRecords = self.loadRecords(),
-           let todayRecord = savedRecords.first(where: {
-               Calendar.current.isDate($0.date, inSameDayAs: today)
-           }) {
-            self.todayRecord = todayRecord
+        
+        // Initialize todayRecord with a default first
+        self.todayRecord = DailyRecord(date: today, goalMl: dailyGoal.targetMl)
+        
+        // Load saved records
+        let savedRecords = Self.loadRecordsStatic()
+        if let todayRec = savedRecords.first(where: {
+            Calendar.current.isDate($0.date, inSameDayAs: today)
+        }) {
+            self.todayRecord = todayRec
             self.records = savedRecords
-        } else {
-            self.todayRecord = DailyRecord(date: today, goalMl: dailyGoal.targetMl)
-            self.records = []
         }
 
         // Load achievements
-        self.achievements = self.loadAchievements()
+        self.achievements = Self.loadAchievementsStatic()
 
         // Initialize default achievements if first launch
         if achievements.isEmpty {
             self.achievements = Self.defaultAchievements
             saveAchievements()
         }
+    }
+
+    private static func loadRecordsStatic() -> [DailyRecord] {
+        guard let data = UserDefaults.standard.data(forKey: "WaterDrinks_records"),
+              let records = try? JSONDecoder().decode([DailyRecord].self, from: data) else {
+            return []
+        }
+        return records
+    }
+
+    private static func loadAchievementsStatic() -> [Achievement] {
+        guard let data = UserDefaults.standard.data(forKey: "WaterDrinks_achievements"),
+              let achievements = try? JSONDecoder().decode([Achievement].self, from: data) else {
+            return []
+        }
+        return achievements
     }
 
     // MARK: - Water Intake Actions
